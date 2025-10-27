@@ -8,6 +8,14 @@ layout: home
 
 Welcome to the GenAIOps hands-on labs! These labs provide practical experience with **monitoring** and **tracing** generative AI applications using Azure AI Foundry and GitHub Actions.
 
+> **🌐 100% Cloud-Based Labs!** 
+> 
+> No local development environment required! Everything runs in the cloud:
+> - Use GitHub's web interface to fork and configure
+> - Use Azure Cloud Shell for service principal setup
+> - Use GitHub Actions to execute labs automatically
+> - View results in Azure AI Foundry and GitHub
+
 ## 🚀 Quick Start Guide
 
 ### Prerequisites
@@ -15,31 +23,33 @@ Welcome to the GenAIOps hands-on labs! These labs provide practical experience w
 - GitHub account
 - Basic familiarity with Python and Azure AI services
 
-### Setup Instructions
+### Setup Instructions (100% Cloud-Based - No Local Setup Required!)
 
-1. **Fork this repository** to your GitHub account
-2. **Clone your fork** to your local machine:
-   ```bash
-   git clone https://github.com/YourUsername/mslearn-genaiops.git
-   cd mslearn-genaiops
-   ```
+1. **Fork this repository** to your GitHub account:
+   - Click the **Fork** button at the top of this repository page
+   - Choose your GitHub account as the destination
 
-3. **Set up Azure AI Foundry** (if you don't have one):
-   - Open [Azure AI Foundry](https://ai.azure.com)
-   - Create a new AI hub and project
+2. **Set up Azure AI Foundry** in your Azure tenant:
+   - Open [Azure AI Foundry](https://ai.azure.com) in a new tab
+   - Sign in with your Azure credentials
+   - Click **+ Create new** → **AI hub resource**
+   - Create a hub and project in your preferred region
    - Deploy a GPT-4o model (or any available chat model)
-   - Note your project connection string
+   - Copy your **project connection string** from the project overview
 
-4. **Configure GitHub Secrets**:
-   - In your GitHub repository, go to **Settings > Secrets and variables > Actions**
-   - Add these secrets:
-     - `AZURE_CREDENTIALS`: Azure service principal JSON (see setup guide below)
-     - `PROJECT_CONNECTION_STRING`: Your Azure AI Foundry project connection string
+3. **Create Azure Service Principal** using Azure Cloud Shell:
+   - Open [Azure Cloud Shell](https://shell.azure.com) (no local Azure CLI needed!)
+   - Run the service principal creation commands (see detailed steps below)
+   - Copy the JSON output for GitHub secrets
+
+4. **Configure GitHub Secrets** in your forked repository:
+   - In your forked repo, go to **Settings > Secrets and variables > Actions**
+   - Add the required secrets (details below)
 
 5. **Run the labs** via GitHub Actions:
-   - Go to the **Actions** tab in your repository
-   - Select the lab you want to run
-   - Click **Run workflow**
+   - Go to the **Actions** tab in your forked repository
+   - Select a lab workflow and click **Run workflow**
+   - No local development environment required!
 
 ## 📚 Available Labs
 
@@ -54,32 +64,55 @@ Welcome to the GenAIOps hands-on labs! These labs provide practical experience w
 
 {% endfor %}
 
-## ⚙️ Azure Service Principal Setup
+## ⚙️ Azure Service Principal Setup (Using Azure Cloud Shell)
 
-To run labs via GitHub Actions, you need to create an Azure service principal:
+Create an Azure service principal using Azure Cloud Shell - no local setup required:
 
-1. **Install Azure CLI** and log in:
+1. **Open Azure Cloud Shell**:
+   - Go to [shell.azure.com](https://shell.azure.com) or click the Cloud Shell icon in Azure Portal
+   - Choose **Bash** or **PowerShell** (both work)
+   - You're automatically authenticated to your Azure subscription
+
+2. **Get your subscription ID**:
    ```bash
-   az login
+   az account show --query "id" --output tsv
    ```
+   Copy this subscription ID for the next steps.
 
-2. **Create service principal**:
+3. **Create service principal**:
    ```bash
    az ad sp create-for-rbac --name "github-genaiops-labs" \
      --role "Contributor" \
      --scopes "/subscriptions/YOUR_SUBSCRIPTION_ID" \
      --sdk-auth
    ```
+   Replace `YOUR_SUBSCRIPTION_ID` with the ID from step 2.
 
-3. **Copy the output JSON** and add it as `AZURE_CREDENTIALS` secret in GitHub
+4. **Copy the entire JSON output** - you'll need this for GitHub secrets
 
-4. **Grant additional permissions**:
+5. **Grant AI Services permissions**:
    ```bash
+   # Get the service principal ID from the JSON output above
    az role assignment create \
-     --assignee SERVICE_PRINCIPAL_ID \
+     --assignee "CLIENT_ID_FROM_JSON" \
      --role "Cognitive Services Contributor" \
      --scope "/subscriptions/YOUR_SUBSCRIPTION_ID"
    ```
+
+6. **Get your Azure AI Foundry project connection string**:
+   - In [Azure AI Foundry](https://ai.azure.com), open your project
+   - Go to **Settings** (gear icon)
+   - Copy the **Connection string** (starts with something like `https://...`)
+
+7. **Add secrets to your GitHub repository**:
+   - Go to your forked repository on GitHub
+   - Navigate to **Settings > Secrets and variables > Actions**
+   - Click **New repository secret** and add:
+     - **Name**: `AZURE_CREDENTIALS`
+     - **Value**: The entire JSON output from step 4
+   - Add another secret:
+     - **Name**: `PROJECT_CONNECTION_STRING`
+     - **Value**: Your Azure AI Foundry project connection string from step 6
 
 ## 🔄 Lab Execution Workflow
 
@@ -125,10 +158,19 @@ After running labs, check these locations:
 
 Common issues and solutions:
 
-- **Authentication errors**: Verify service principal permissions
-- **Missing resources**: Ensure Azure AI Foundry project exists
-- **Quota limits**: Check Azure OpenAI service quotas
-- **Connection strings**: Verify project connection string format
+- **Authentication errors**: 
+  - Verify service principal was created correctly in Azure Cloud Shell
+  - Check that both `AZURE_CREDENTIALS` and `PROJECT_CONNECTION_STRING` secrets are set
+  - Ensure service principal has "Contributor" and "Cognitive Services Contributor" roles
+- **Missing resources**: 
+  - Confirm Azure AI Foundry project exists and has a deployed model
+  - Verify you're using the correct subscription and resource group
+- **Quota limits**: 
+  - Check Azure OpenAI service quotas in your subscription
+  - Try different Azure regions if quota is exhausted
+- **Connection string format**: 
+  - Ensure connection string starts with `https://` and includes your project details
+  - Copy the full connection string from Azure AI Foundry project settings
 
 ## 📖 Learning Resources
 

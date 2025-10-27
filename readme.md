@@ -9,21 +9,24 @@ Students will complete two focused labs that demonstrate essential GenAIOps prac
 - **Lab 07:** [Monitor GenAI Applications](labs/07-observability/) - Set up comprehensive monitoring and telemetry collection
 - **Lab 08:** [Trace GenAI Applications](labs/08-tracing/) - Implement distributed tracing for debugging and optimization
 
-## 🚀 Getting Started
+## 🌐 100% Cloud-Based Setup
+
+**No local development environment required!** Everything runs in the cloud:
 
 ### For Students
 1. **Visit the [GitHub Pages site](https://microsoftlearning.github.io/mslearn-genaiops/)** for complete setup instructions
-2. **Fork this repository** to your GitHub account
-3. **Configure Azure and GitHub integration** following the setup guide
-4. **Run labs via GitHub Actions** with one-click execution
+2. **Fork this repository** using GitHub's web interface
+3. **Set up Azure AI Foundry** via [ai.azure.com](https://ai.azure.com)
+4. **Create service principal** using [Azure Cloud Shell](https://shell.azure.com)
+5. **Configure GitHub secrets** in your forked repository
+6. **Run labs via GitHub Actions** with one-click execution
 
-### Quick Setup Summary
-1. Fork this repo
-2. Set up Azure AI Foundry project with deployed model
-3. Configure GitHub secrets:
-   - `AZURE_CREDENTIALS` (service principal JSON)
-   - `PROJECT_CONNECTION_STRING` (AI Foundry connection string)
-4. Go to Actions tab → Select lab → Run workflow
+### Cloud-Only Setup Summary
+1. 🍴 Fork this repo on GitHub.com
+2. ☁️ Create Azure AI Foundry project at ai.azure.com
+3. 🛡️ Set up service principal via shell.azure.com
+4. 🔐 Add secrets in GitHub Settings → Secrets and variables → Actions
+5. 🚀 Execute labs in GitHub Actions tab
 
 ## 📊 Lab Execution via GitHub Actions
 
