@@ -25,24 +25,22 @@ To complete the tasks in this exercise, you need:
 - A deployed model (like GPT-4o),
 - A connected Application Insights resource.
 
+Note that **must** have a **hub based project** to use the tracing features in Azure AI Foundry.
+
 ### Create an AI Foundry hub and project
 
 To quickly setup a hub and project, simple instructions to use the Azure AI Foundry portal UI are provided below.
 
 1. In a web browser, open the [Azure AI Foundry portal](https://ai.azure.com) at `https://ai.azure.com` and sign in using your Azure credentials.
-1. In the home page, select **+ Create project**.
+1. In the home page, select **+ Create new**.
+1. Select **AI hub resource**.
 1. In the **Create a project** wizard, enter a valid name for your project and if an existing hub is suggested, choose the option to create a new one. Then review the Azure resources that will be automatically created to support your hub and project.
-1. Select **Customize** and specify the following settings for your hub:
+1. Expand **Advanced options** and specify the following settings for your hub:
     - **Hub name**: *A valid name for your hub*
     - **Subscription**: *Your Azure subscription*
     - **Resource group**: *Create or select a resource group*
-    - **Location**: Select **Help me choose** and then select **gpt-4o** in the Location helper window and use the recommended region\*
-    - **Connect Azure AI Services or Azure OpenAI**: *Create a new AI Services resource*
-    - **Connect Azure AI Search**: Skip connecting
-
-    > \* Azure OpenAI resources are constrained by regional model quotas. In the event of a quota limit being exceeded later in the exercise, there's a possibility you may need to create another resource in a different region.
-
-1. Select **Next** and review your configuration. Then select **Create** and wait for the process to complete.
+    - **Region**: *Select the region closest to you*
+1. Select **Create** and wait for the process to complete.
 
 ### Deploy a model
 

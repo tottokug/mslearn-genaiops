@@ -1,0 +1,67 @@
+name: Documentation Validation
+
+on:
+  push:
+    paths: 
+      - 'docs/**'
+      - '*.md'
+      - 'Instructions/**'
+  pull_request:
+    paths: 
+      - 'docs/**'
+      - '*.md'
+      - 'Instructions/**'
+
+jobs:
+  validate-docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install markdownlint
+      run: npm install -g markdownlint-cli
+      
+    - name: Validate markdown files
+      run: |
+        markdownlint docs/ --ignore node_modules
+        markdownlint *.md --ignore node_modules
+        markdownlint Instructions/ --ignore node_modules
+      continue-on-error: true
+      
+    - name: Check markdown links
+      uses: gaurav-nelson/github-action-markdown-link-check@v1
+      with:
+        use-quiet-mode: 'yes'
+        use-verbose-mode: 'yes'
+        config-file: '.github/workflows/markdown-link-check-config.json'
+        folder-path: 'docs/, Instructions/'
+      continue-on-error: true
+
+  spell-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install cspell
+      run: npm install -g cspell
+      
+    - name: Run spell check
+      run: |
+        cspell "docs/**/*.md"
+        cspell "*.md"
+        cspell "Instructions/**/*.md"
+      continue-on-error: true

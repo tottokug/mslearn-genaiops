@@ -1,0 +1,153 @@
+name: "Lab 07: Monitor GenAI Application"
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+      num_requests:
+        description: 'Number of telemetry requests to generate'
+        required: false
+        default: '5'
+        type: string
+  push:
+    paths:
+      - 'labs/07-observability/**'
+      - '.github/workflows/lab-07-monitor.yml'
+    branches:
+      - main
+      - 'lab/07-*'
+  pull_request:
+    paths:
+      - 'labs/07-observability/**'
+
+env:
+  LAB_NAME: "07-observability"
+  LAB_TITLE: "Monitor GenAI Application"
+
+jobs:
+  monitor-genai:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'dev' }}
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.8+
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install azure-ai-projects azure-identity azure-monitor-opentelemetry python-dotenv
+
+    - name: Azure login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Set up environment variables
+      run: |
+        echo "PROJECT_CONNECTION_STRING=${{ secrets.PROJECT_CONNECTION_STRING }}" >> $GITHUB_ENV
+        echo "CI_MODE=true" >> $GITHUB_ENV
+
+    - name: Run Lab 07 - Monitor GenAI Application
+      working-directory: ./labs/07-observability
+      run: |
+        echo "::group::Lab Execution"
+        python monitor_genai.py --ci-mode --requests ${{ github.event.inputs.num_requests || '5' }}
+        echo "::endgroup::"
+
+    - name: Upload lab results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: lab-07-monitoring-results-${{ github.run_id }}
+        path: |
+          labs/07-observability/monitoring_results.json
+        retention-days: 30
+
+    - name: Comment on PR with results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          
+          let resultsContent = 'Lab execution failed - no results file found';
+          try {
+            const results = JSON.parse(fs.readFileSync('labs/07-observability/monitoring_results.json', 'utf8'));
+            
+            const summary = results.summary || {};
+            resultsContent = `## 📊 Lab 07: Monitor GenAI Application Results
+
+            **Status:** ${results.status === 'success' ? '✅ Success' : '❌ Failed'}
+            **Environment:** ${{ github.event.inputs.environment || 'dev' }}
+            **Execution Time:** ${new Date().toISOString()}
+
+            ### 📈 Monitoring Results
+            - **Monitoring Enabled:** ${summary.monitoring_enabled ? '✅' : '❌'}
+            - **Application Insights Connected:** ${summary.application_insights_connected ? '✅' : '❌'}
+            - **Requests Generated:** ${summary.total_requests_generated || 0}
+            - **Success Rate:** ${summary.success_rate || '0%'}
+            - **Average Response Time:** ${Math.round(summary.avg_response_time_ms || 0)}ms
+
+            ### 🔍 Telemetry Data
+            - **Total Requests:** ${summary.total_requests_generated || 0}
+            - **Successful Requests:** ${summary.successful_requests || 0}
+            
+            ${results.status === 'failed' ? `
+            ### ❌ Errors
+            \`\`\`
+            ${results.error || 'Unknown error occurred'}
+            \`\`\`
+            ` : ''}
+
+            ### 🔗 View Results
+            - **Azure AI Foundry:** Check the monitoring dashboard in your AI Foundry project
+            - **Application Insights:** View detailed telemetry in Azure Portal
+            - [Download detailed results](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+            ### 📚 Next Steps
+            1. Open your Azure AI Foundry project
+            2. Navigate to the **Monitoring** section
+            3. Review the generated telemetry data
+            4. Set up custom alerts and dashboards
+            `;
+          } catch (error) {
+            console.error('Error reading results:', error);
+          }
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: resultsContent
+          });
+
+    - name: Final status check
+      if: always()
+      run: |
+        if [ -f "labs/07-observability/monitoring_results.json" ]; then
+          status=$(python -c "import json; print(json.load(open('labs/07-observability/monitoring_results.json')).get('status', 'failed'))")
+          if [ "$status" = "success" ]; then
+            echo "::notice title=Lab 07 Success::Monitoring lab completed successfully! 📊"
+            exit 0
+          else
+            echo "::error title=Lab 07 Failed::Monitoring lab failed. Check logs for details."
+            exit 1
+          fi
+        else
+          echo "::error title=Lab 07 Failed::No results file found."
+          exit 1
+        fi
